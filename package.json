@@ -8,6 +8,7 @@
   },
   "scripts": {
     "start": "egg-scripts start --daemon --title=egg-server-puppeteer-tools-backend --env=prod",
+    "start:local": "egg-scripts start --daemon --title=egg-server-puppeteer-tools-backend --env=local",
     "stop": "egg-scripts stop --title=egg-server-puppeteer-tools-backend",
     "dev": "egg-bin dev -r egg-ts-helper/register",
     "debug": "egg-bin debug -r egg-ts-helper/register",
