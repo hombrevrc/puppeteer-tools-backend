@@ -11,10 +11,11 @@ export default class ExcuteService extends Service {
   async shotEle(id: string){
     const workInfo: any = await this.service.work.getWorkInfo(id);
     const puppeteerTool = new PuppeteerTool(workInfo.get('url'));
-    const operLength = workInfo.operatorItems ? workInfo.operatorItems.length :0 ;
+    const operatorItems = workInfo.get('operatorItems');
+    const operLength = operatorItems ? operatorItems.length :0 ;
     for(let i = 0; i <  operLength; ++i){
-      await puppeteerTool.operator( workInfo.operatorItems[i]);
+      await puppeteerTool.operator( operatorItems[i]);
     }
-    return puppeteerTool.shotEle({});
+    return puppeteerTool.shotEle({fullPage: true});
   }
 }
