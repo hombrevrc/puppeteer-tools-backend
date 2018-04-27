@@ -6,7 +6,8 @@ export default class ExcuteController extends Controller {
   public async excuteWork() {
     const { ctx } = this;
     const workId =  ctx.request.query.workId;
-    ctx.body = await this.service.excute.excuteWork(workId);
+    const selector =  ctx.request.query.selector;
+    ctx.body = await this.service.excute.excuteWork(workId, selector );
   }
 
   public async shotEle(){
