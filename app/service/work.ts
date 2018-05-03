@@ -7,19 +7,44 @@ import * as AV from 'leancloud-storage';
  */
 export default class WorkService extends Service {
 
-  public async saveWork(workModel: WorkModel) {
+  public async saveWork(workInfo: any){
     const WorkInfo = AV.Object.extend('workInfo');
-    const workInfo = new WorkInfo();
-    workInfo.set('name', workModel.name);
-    workInfo.set('url', workModel.url);
-    workInfo.set('operatorItems', workModel.operatorItems);
-    await workInfo.save();
+    const workInfoIns = new WorkInfo();
+    workInfoIns.set('name', workInfo.name);
+    workInfoIns.set('url', workInfo.url);
+    workInfoIns.set('desc', workInfo.desc);
+    workInfoIns.set('userId', this.ctx.user.id);
+    await workInfoIns.save();
+    return true;
+  }
+
+  public async saveTask(workModel: WorkModel) {
+    const TaskInfo = AV.Object.extend('taskInfo');
+    const taskInfo = new TaskInfo();
+    taskInfo.set('name', workModel.name);
+    taskInfo.set('workId', workModel.workId);
+    taskInfo.set('operatorItems', workModel.operatorItems);
+    taskInfo.set('expectModel', workModel.expectModel);
+    await taskInfo.save();
     return true;
   }
 
   public async getWorkInfo(id: string){
     const query = new AV.Query('workInfo');
     return query.get(id);
+  }
+
+  public async getAllWorkInfo(){
+    const userId = this.ctx.user.id;
+    const query = new AV.Query('workInfo');
+    query.equalTo('userId', userId);
+    return query.find();
+  }
+
+  public async getTaskInfo(taskId: string){
+    const query = new AV.Query('taskInfo');
+    query.include('workId');
+    return query.get(taskId);
   }
 }
 

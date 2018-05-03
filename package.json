@@ -28,7 +28,7 @@
     "egg-scripts": "^2.6.0",
     "leancloud-realtime": "^3.5.7",
     "leancloud-storage": "^3.6.7",
-    "puppeteer-tools-core": "^0.2.4"
+    "puppeteer-tools-core": "^0.2.5"
   },
   "devDependencies": {
     "@types/mocha": "^2.2.40",

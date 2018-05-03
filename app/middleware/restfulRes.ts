@@ -17,7 +17,7 @@ export default function restfulRes(){
       }
     } catch (error) {
       ctx.body = {
-        code: 50000,
+        code: error.errorCode || 50000,
         error: error.message,
       };
     }

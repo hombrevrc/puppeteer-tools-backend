@@ -6,6 +6,5 @@ export default app => {
       appId: app.config.appId,
       appKey: app.config.appKey
     });
-    await app.runSchedule('excuteWork')
   });
 };

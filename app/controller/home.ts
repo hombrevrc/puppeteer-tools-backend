@@ -9,4 +9,9 @@ export default class HomeController extends Controller {
   public async getUserInfo() {
     this.ctx.body = this.ctx.user;
   }
+
+  public async logOut() {
+    this.ctx.logout();
+    this.ctx.body = true;
+  }
 }

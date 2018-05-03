@@ -1,11 +1,13 @@
 import { EleOperatorModel } from 'puppeteer-tools-core'
 import HelpInstance from '../extend/help'
+import ExpectModel from './expect'
 
 export class WorkModel {
 
   constructor( params: any ){
     this.name = params.name;
-    this.url = params.url;
+    this.workId = params.workId;
+    this.expectModel = params.expectModel;
     this.operatorItems = new Array<EleOperatorModel>();
     params.operatorItems.forEach(value=>{
       let newOperatorItem = HelpInstance.initValue<EleOperatorModel>(value, EleOperatorModel);
@@ -17,6 +19,8 @@ export class WorkModel {
   
   operatorItems: Array<EleOperatorModel>;
 
-  url: string;
+  workId: string;
+
+  expectModel: ExpectModel;
 
 }
