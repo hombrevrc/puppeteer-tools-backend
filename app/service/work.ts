@@ -22,7 +22,8 @@ export default class WorkService extends Service {
     const TaskInfo = AV.Object.extend('taskInfo');
     const taskInfo = new TaskInfo();
     taskInfo.set('name', workModel.name);
-    taskInfo.set('workId', workModel.workId);
+    const workId = AV.Object.createWithoutData('workInfo', workModel.workId);
+    taskInfo.set('workId', workId);
     taskInfo.set('operatorItems', workModel.operatorItems);
     taskInfo.set('expectModel', workModel.expectModel);
     await taskInfo.save();
@@ -45,6 +46,20 @@ export default class WorkService extends Service {
     const query = new AV.Query('taskInfo');
     query.include('workId');
     return query.get(taskId);
+  }
+
+  public async getAllTask(workId: string) {
+    const query = new AV.Query('taskInfo');
+    const workObject = AV.Object.createWithoutData('workInfo', workId);
+    query.equalTo('workId', workObject);
+    return query.find();
+  }
+
+  public async getTaskInstance(taskId: string){
+    const query = new AV.Query('taskExcuteInstance');
+    const taskPointer = AV.Object.createWithoutData('taskInfo', taskId);
+    query.equalTo('taskId', taskPointer);
+    return query.find();
   }
 }
 

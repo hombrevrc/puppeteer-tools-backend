@@ -39,4 +39,16 @@ export default class WorkController extends Controller {
     const taskId  =  ctx.request.query.taskId;
     ctx.body = await this.service.work.getTaskInfo(taskId);
   }
+
+  public async getAllTask(){
+    const { ctx } = this;
+    const workId  =  ctx.request.query.workId;
+    ctx.body = await this.service.work.getAllTask(workId);
+  }
+
+  public async getTaskInstance() {
+    const { ctx } = this;
+    const taskId = ctx.request.query.taskId;
+    ctx.body = await this.service.work.getTaskInstance(taskId);
+  }
 }

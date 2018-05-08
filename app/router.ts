@@ -15,6 +15,11 @@ export default (app: Application) => {
   router.get('/getWorkInfo', controller.work.getWorkInfo);
   router.get('/getTaskInfo', controller.work.getTaskInfo);
   router.get('/getAllWorkInfo', controller.work.getAllWorkInfo);
+  router.get('/getAllTask', controller.work.getAllTask);
+  router.get('/getTaskInstance', controller.work.getTaskInstance);
   //excute
-  router.get('/excuteWork', controller.excute.excuteTask);
+  router.get('/excuteTask', controller.excute.excuteTask);
+  // commOperator
+  router.post('/saveOperatorItems', controller.comOperator.saveOperatorItems);
+  router.get('/getOperatorItems', controller.comOperator.getOperatorItems);
 };
