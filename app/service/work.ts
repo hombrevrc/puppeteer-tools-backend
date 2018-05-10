@@ -13,6 +13,9 @@ export default class WorkService extends Service {
     workInfoIns.set('name', workInfo.name);
     workInfoIns.set('url', workInfo.url);
     workInfoIns.set('desc', workInfo.desc);
+    workInfoIns.set('cycleTimeType', workInfo.cycleTimeType);
+    workInfoIns.set('curCycleTime', workInfo.cycleTime);
+    workInfoIns.set('cycleTime', workInfo.cycleTime);
     workInfoIns.set('userId', this.ctx.user.id);
     await workInfoIns.save();
     return true;

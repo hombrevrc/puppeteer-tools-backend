@@ -9,6 +9,7 @@ export default class ComOperatorController extends Controller {
   }
 
   public async getOperatorItems(){
-    this.ctx.body = await this.service.comOperator.getOperatorItems();
+    const workId = this.ctx.query.workId;
+    this.ctx.body = await this.service.comOperator.getOperatorItems(workId);
   }
 }

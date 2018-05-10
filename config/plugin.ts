@@ -8,6 +8,10 @@ const plugin: EggPlugin = {
   passportGithub: {
     enable: true,
     package: 'egg-passport-github',
+  },
+  mysql: {
+    enable: true,
+    package: 'egg-mysql'
   }
 };
 

@@ -8,12 +8,16 @@ export default class ComOperatorService extends Service {
     const operatorItems = new OperatorItems();
     operatorItems.set('name', newOperator.name);
     operatorItems.set('items', newOperator.items);
+    const workId = AV.Object.createWithoutData('workInfo', newOperator.workId);
+    operatorItems.set('workId', workId);
     await operatorItems.save();
     return true;
   }
 
-  public async getOperatorItems(){
+  public async getOperatorItems(workId){
     const query = new AV.Query('operatorItems');
+    const workObject = AV.Object.createWithoutData('workInfo', workId);
+    query.equalTo('workId', workObject);
     return query.find();
   }
 }

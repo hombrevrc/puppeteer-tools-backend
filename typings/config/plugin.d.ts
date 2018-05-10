@@ -3,3 +3,4 @@
 
 import 'egg-passport';
 import 'egg-passport-github';
+import 'egg-mysql';

@@ -9,4 +9,6 @@ export default class ExpectModel {
   value: String;
 
   expectSelectKey: ElementSelectKey;
+
+  onlyGet: Boolean;
 }
