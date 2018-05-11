@@ -1,11 +1,18 @@
 import { Service } from 'egg';
 import { WorkModel } from '../model/work';
+import DbConfig from '../model/dbConfig';
 import * as AV from 'leancloud-storage';
 
 /**
  * WorkService
  */
 export default class WorkService extends Service {
+
+  private initSqlLink(dbConfig: DbConfig) {
+    if( dbConfig.isExactConfig()) {
+      this.app[dbConfig.uniqueName()] = this.app.mysql.createInstance(dbConfig);
+    }
+  }
 
   public async saveWork(workInfo: any){
     const WorkInfo = AV.Object.extend('workInfo');
@@ -17,6 +24,11 @@ export default class WorkService extends Service {
     workInfoIns.set('curCycleTime', workInfo.cycleTime);
     workInfoIns.set('cycleTime', workInfo.cycleTime);
     workInfoIns.set('userId', this.ctx.user.id);
+    const dbConfig = new DbConfig(<DbConfig>workInfo.dbInfo);
+    if(dbConfig && dbConfig.isExactConfig()) {
+      workInfoIns.set('dbInfo', workInfo.dbInfo);
+      this.initSqlLink(dbConfig);
+    }
     await workInfoIns.save();
     return true;
   }

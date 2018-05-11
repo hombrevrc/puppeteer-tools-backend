@@ -3,7 +3,10 @@ import { PuppeteerTool } from 'puppeteer-tools-core';
 import ExpectModel from '../model/expect'
 import ExpectTypes from '../model/expectTypes'
 import ErrorInfo from '../public/errorInfo';
+import BlinkDiffCom from '../extend/blinkDiffCom';
 import * as AV from 'leancloud-storage';
+import DbConfig from '../model/dbConfig';
+const result = require('lodash');
 
 export default class ExcuteService extends Service {
 
@@ -19,6 +22,10 @@ export default class ExcuteService extends Service {
     await taskExcuteInstance.save();
     const taskInfo = AV.Object.createWithoutData('taskInfo', id);
     taskInfo.set('lastStatus', taskResult.result);
+    if(taskResult.first) {
+      const expectModel = curTaskInfo.get('expectModel');
+      taskInfo.set('expectModel', {...expectModel, value:taskResult.first });
+    }
     taskInfo.save();
     return {
       taskId: id,
@@ -36,6 +43,7 @@ export default class ExcuteService extends Service {
       for(let i = 0; i <  operLength-1; ++i){
         await puppeteerTool.operator( operatorItems[i]);
       }
+      this.getExpectValue(expectModel, taskInfo);
       switch (expectModel.opType) {
         case ExpectTypes.PageShot:
           await puppeteerTool.operator( operatorItems[operLength - 1]);
@@ -62,6 +70,26 @@ export default class ExcuteService extends Service {
     })
   }
 
+  private async getExpectValue(expectModel: ExpectModel, taskInfo: any) {
+    if(expectModel.useSql && taskInfo.get('workId').get('dbInfo')) {
+      const sql = expectModel.value;
+      const dbConfig = new DbConfig(<DbConfig>(taskInfo.get('workId').get('dbInfo')));
+      if(!this.app[dbConfig.uniqueName()]) {
+        this.app[dbConfig.uniqueName()] = this.app.mysql.createInstance(dbConfig);
+      }
+      const sqlValue = await this.app[dbConfig.uniqueName()].query(sql);
+      if(!sqlValue) {
+        expectModel.value = "";
+      }
+      else if(expectModel.sqlGetIndex) {
+        expectModel.value = result(sqlValue, expectModel.sqlGetIndex);
+      }else {
+        const obj = sqlValue[0];
+        expectModel.value = obj[Object.keys(obj)[0]];
+      }
+    }
+  }
+
   async shotEle(puppeteerTool: PuppeteerTool, expectModel: ExpectModel){
     const option = (expectModel.expectSelectKey && expectModel.expectSelectKey.select) ? {} : {
       fullPage: true
@@ -69,9 +97,27 @@ export default class ExcuteService extends Service {
     const newShot = await puppeteerTool.shotEle(option, expectModel.expectSelectKey);
     const newFile = new AV.File(`${new Date().toJSON()}.png`, newShot);
     const saveInfo = await newFile.save();
+    const imgUrl = saveInfo.url();
+    if(expectModel.onlyGet) {
+      return {
+        result: true,
+        message: imgUrl
+      }
+    } 
+    if(expectModel.useFirst && !expectModel.value) {
+      return {
+        result: true,
+        message: `first excute, actural: ${imgUrl}`,
+        first: imgUrl
+      }
+    }
+    //对图片进行对比
+    const compareBlinkDiff = await BlinkDiffCom.CompareImage(imgUrl, expectModel.value);
+    const beyondFile = new AV.File(`${new Date().toJSON()}_bey.png`, compareBlinkDiff.outStream);
+    const beyondFileInfo = await beyondFile.save();
     return {
-      result: true,
-      message: saveInfo.url()
+      result: compareBlinkDiff.result,
+      message: beyondFileInfo.url()
     }
   }
 
@@ -87,14 +133,18 @@ export default class ExcuteService extends Service {
   }
 
   compareContent( acturalModel: any, expectModel: ExpectModel){
-    if(!expectModel){
+    if(expectModel.onlyGet) {
       return {
         result: true,
         message: acturalModel.content
       }
-    }
-    if(expectModel.onlyGet) {
-      return acturalModel.content
+    } 
+    if(expectModel.useFirst && !expectModel.value) {
+      return {
+        result: true,
+        message: `first excute, actural: ${acturalModel.content}`,
+        first: acturalModel.content
+      }
     }
     const euqal = acturalModel.content === expectModel.value;
     return {
@@ -112,7 +162,17 @@ export default class ExcuteService extends Service {
     }
     const acturalValue = this.getActuralValue(acturalModel, expectModel);
     if(expectModel.onlyGet) {
-      return acturalValue
+      return {
+        result: true,
+        message: acturalValue
+      }
+    }
+    if(expectModel.useFirst && !expectModel.value) {
+      return {
+        result: true,
+        message: `first excute, actural: ${acturalValue}`,
+        first: acturalValue
+      }
     }
     const euqal = expectModel.value === acturalValue
     return {

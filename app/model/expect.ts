@@ -11,4 +11,10 @@ export default class ExpectModel {
   expectSelectKey: ElementSelectKey;
 
   onlyGet: Boolean;
+
+  useFirst: Boolean;
+
+  useSql: Boolean;
+
+  sqlGetIndex: String;
 }
