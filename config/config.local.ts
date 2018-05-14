@@ -2,8 +2,8 @@ import { DefaultConfig } from './config.default';
 
 export default () => {
   const config: DefaultConfig = {};
-  config.loginInUrl = 'http://127.0.0.1:7001/';
-  config.homepage = 'http://localhost:8080/#/';
+  config.loginInUrl = 'http://localhost:8081/#/login';
+  config.homepage = 'http://localhost:8081/#/';
   config.appId = 'HAGzPVNMVnt0WA4KJs9qmHme-gzGzoHsz';
   config.appKey = 'NTXdKfBeztXeXb4rpVEs38yQ';
   config.dump = {
@@ -11,7 +11,7 @@ export default () => {
   };
 
   //local不需要登录
-  config.middleware = ['restfulRes'];
+  // config.middleware = ['restfulRes'];
 
   config.security = {
     csrf: {

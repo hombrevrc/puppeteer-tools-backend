@@ -2,8 +2,19 @@ import { Controller } from 'egg';
 
 export default class HomeController extends Controller {
   
-  public async index() {
-    this.ctx.body = await this.service.test.sayHi('egg');
+  public async loginIn() {
+    if(!this.ctx.isAuthenticated()) {
+      this.service.home.loginIn();
+    } else {
+      this.ctx.body = {
+        code: 30200,
+        redirectUrl: this.ctx.app.config.homepage
+      }
+    }
+  }
+
+  public async hasLogin() {
+    this.ctx.body = this.ctx.isAuthenticated();
   }
 
   public async getUserInfo() {

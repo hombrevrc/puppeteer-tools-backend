@@ -5,7 +5,8 @@ export default (app: Application) => {
   app.passport.mount('github');
 
   //HOME
-  router.get('/', controller.home.index);
+  router.get('/login/loginIn', controller.home.loginIn);
+  router.get('/login/hasLogin', controller.home.hasLogin);
   router.get('/getUserInfo', controller.home.getUserInfo);
   router.get('/logOut', controller.home.logOut);
   //work

@@ -30,6 +30,15 @@ export default (appInfo: EggAppConfig) => {
   // add your config here
   config.loginFilter = {
     ignore(ctx) {
+      if (ctx.path.indexOf('/passport/github') !== -1 || ctx.path.indexOf('/login/') !== -1) {
+        return true;
+      }
+      return false;
+    },
+  };
+
+  config.restfulRes = {
+    ignore(ctx) {
       if (ctx.path.indexOf('/passport/github') !== -1) {
         return true;
       }
