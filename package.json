@@ -31,7 +31,7 @@
     "leancloud-realtime": "^3.5.7",
     "leancloud-storage": "^3.6.7",
     "lodash": "^4.17.10",
-    "puppeteer-tools-core": "^0.2.8"
+    "puppeteer-tools-core": "^0.2.6"
   },
   "devDependencies": {
     "@types/mocha": "^2.2.40",
