@@ -16,11 +16,18 @@ export default class BlinkDiffCom {
       ...option
     });
     const res = await diff.runWithPromise();
-    const outStream = fs.readFileSync(outputPath);
-    fs.unlinkSync(outputPath);
-    return {
-      result: diff.hasPassed(res.code),
-      outStream,
+    if(!diff.hasPassed(res.code)) {
+      const outStream = fs.readFileSync(outputPath);
+      fs.unlinkSync(outputPath);
+      return {
+        result: diff.hasPassed(res.code),
+        outStream,
+      }
+    }else {
+      return {
+        result: diff.hasPassed(res.code),
+        outStream: null
+      }
     }
   }
 }

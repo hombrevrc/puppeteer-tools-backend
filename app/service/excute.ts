@@ -113,11 +113,18 @@ export default class ExcuteService extends Service {
     }
     //对图片进行对比
     const compareBlinkDiff = await BlinkDiffCom.CompareImage(imgUrl, expectModel.value);
-    const beyondFile = new AV.File(`${new Date().toJSON()}_bey.png`, compareBlinkDiff.outStream);
-    const beyondFileInfo = await beyondFile.save();
-    return {
-      result: compareBlinkDiff.result,
-      message: beyondFileInfo.url()
+    if(compareBlinkDiff.outStream) {
+      const beyondFile = new AV.File(`${new Date().toJSON()}_bey.png`, compareBlinkDiff.outStream);
+      const beyondFileInfo = await beyondFile.save();
+      return {
+        result: compareBlinkDiff.result,
+        message: beyondFileInfo.url()
+      }
+    }else {
+      return {
+        result: compareBlinkDiff.result,
+        message: imgUrl
+      }
     }
   }
 
