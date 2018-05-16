@@ -2,8 +2,8 @@ import { Service } from 'egg'
 import { PuppeteerTool } from 'puppeteer-tools-core';
 import ExpectModel from '../model/expect'
 import ExpectTypes from '../model/expectTypes'
-import ErrorInfo from '../public/errorInfo';
 import BlinkDiffCom from '../extend/blinkDiffCom';
+import ExcuteStatus from '../model/excuteStatus';
 import * as AV from 'leancloud-storage';
 import DbConfig from '../model/dbConfig';
 const result = require('lodash');
@@ -34,33 +34,46 @@ export default class ExcuteService extends Service {
     }
   }
 
-  async operatorEle(taskInfo: any){
-    const puppeteerTool = new PuppeteerTool(taskInfo.get('workId').get('url'));
-    const operatorItems = taskInfo.get('operatorItems');
-    const expectModel: ExpectModel = <ExpectModel>taskInfo.get('expectModel');
-    const operLength = operatorItems ? operatorItems.length :0 ;
-    if(operLength){
-      for(let i = 0; i <  operLength-1; ++i){
-        await puppeteerTool.operator( operatorItems[i]);
+  async operatorEle(taskInfo: any): Promise<any>{
+    try {
+      const puppeteerTool = new PuppeteerTool(taskInfo.get('workId').get('url'));
+      const operatorItems = taskInfo.get('operatorItems');
+      const expectModel: ExpectModel = <ExpectModel>taskInfo.get('expectModel');
+      const operLength = operatorItems ? operatorItems.length :0 ;
+      if(operLength){
+        for(let i = 0; i <  operLength-1; ++i){
+          await puppeteerTool.operator( operatorItems[i]);
+        }
+        this.getExpectValue(expectModel, taskInfo);
+        switch (expectModel.opType) {
+          case ExpectTypes.PageShot:
+            await puppeteerTool.operator( operatorItems[operLength - 1]);
+            return this.shotEle(puppeteerTool, expectModel);
+          case ExpectTypes.Content:
+            const acturalModel = 
+              await puppeteerTool.operator( operatorItems[operLength - 1], expectModel.expectSelectKey);
+            return this.compareContent(acturalModel[0], expectModel);
+          case ExpectTypes.Attribute:
+            const acturalModelAttr = 
+              await puppeteerTool.operator( operatorItems[operLength - 1], expectModel.expectSelectKey);
+            return this.compareAttr(acturalModelAttr[0], expectModel);
+          default:
+            return {
+              result: ExcuteStatus.Error,
+              message: '找不到对应的期望类型'
+            }
+        }
       }
-      this.getExpectValue(expectModel, taskInfo);
-      switch (expectModel.opType) {
-        case ExpectTypes.PageShot:
-          await puppeteerTool.operator( operatorItems[operLength - 1]);
-          return this.shotEle(puppeteerTool, expectModel);
-        case ExpectTypes.Content:
-          const acturalModel = 
-            await puppeteerTool.operator( operatorItems[operLength - 1], expectModel.expectSelectKey);
-          return this.compareContent(acturalModel[0], expectModel);
-        case ExpectTypes.Attribute:
-          const acturalModelAttr = 
-            await puppeteerTool.operator( operatorItems[operLength - 1], expectModel.expectSelectKey);
-          return this.compareAttr(acturalModelAttr[0], expectModel);
-        default:
-          throw new ErrorInfo('找不到对应的期望类型');
+      return {
+        result: ExcuteStatus.Error,
+        message: '没有操作'
+      }
+    } catch (error) {
+      return {
+        result: ExcuteStatus.Error,
+        message: error.message
       }
     }
-    throw new ErrorInfo('没有操作');
   }
 
   public async excuteWork(workId: string) {
@@ -100,29 +113,30 @@ export default class ExcuteService extends Service {
     const imgUrl = saveInfo.url();
     if(expectModel.onlyGet) {
       return {
-        result: true,
+        result: ExcuteStatus.Success,
         message: imgUrl
       }
     } 
     if(expectModel.useFirst && !expectModel.value) {
       return {
-        result: true,
+        result: ExcuteStatus.Success,
         message: `first excute, actural: ${imgUrl}`,
         first: imgUrl
       }
     }
     //对图片进行对比
     const compareBlinkDiff = await BlinkDiffCom.CompareImage(imgUrl, expectModel.value);
+    const result = compareBlinkDiff.result ? ExcuteStatus.Success : ExcuteStatus.Failed;
     if(compareBlinkDiff.outStream) {
       const beyondFile = new AV.File(`${new Date().toJSON()}_bey.png`, compareBlinkDiff.outStream);
       const beyondFileInfo = await beyondFile.save();
       return {
-        result: compareBlinkDiff.result,
+        result,
         message: beyondFileInfo.url()
       }
     }else {
       return {
-        result: compareBlinkDiff.result,
+        result,
         message: imgUrl
       }
     }
@@ -142,18 +156,18 @@ export default class ExcuteService extends Service {
   compareContent( acturalModel: any, expectModel: ExpectModel){
     if(expectModel.onlyGet) {
       return {
-        result: true,
+        result: ExcuteStatus.Success,
         message: acturalModel.content
       }
     } 
     if(expectModel.useFirst && !expectModel.value) {
       return {
-        result: true,
+        result: ExcuteStatus.Success,
         message: `first excute, actural: ${acturalModel.content}`,
         first: acturalModel.content
       }
     }
-    const euqal = acturalModel.content === expectModel.value;
+    const euqal = acturalModel.content === expectModel.value? ExcuteStatus.Success : ExcuteStatus.Failed;
     return {
       result: euqal,
       message: `actural: ${acturalModel.content}, expect: ${expectModel.value}`
@@ -163,25 +177,25 @@ export default class ExcuteService extends Service {
   compareAttr( acturalModel: any, expectModel: ExpectModel ){
     if(!expectModel || !expectModel.name){
       return {
-        result: false,
+        result: ExcuteStatus.Failed,
         message: '需指定要比较的属性'
       }
     }
     const acturalValue = this.getActuralValue(acturalModel, expectModel);
     if(expectModel.onlyGet) {
       return {
-        result: true,
+        result: ExcuteStatus.Success,
         message: acturalValue
       }
     }
     if(expectModel.useFirst && !expectModel.value) {
       return {
-        result: true,
+        result: ExcuteStatus.Success,
         message: `first excute, actural: ${acturalValue}`,
         first: acturalValue
       }
     }
-    const euqal = expectModel.value === acturalValue
+    const euqal = expectModel.value === acturalValue? ExcuteStatus.Success : ExcuteStatus.Failed;
     return {
       result: euqal,
       message: `actural: ${acturalValue}, expect: ${expectModel.value}`
